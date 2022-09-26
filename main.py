@@ -1,35 +1,27 @@
 import tkinter as tk
 
-from tkinter import *
+# Creates the Window
+frame = tk.Tk()
+frame.title("Summarizer")
+frame.geometry('1280x720')
 
-windowWidth = "1280"
-windowHeight = "720"
+# This function is called to get the input of the text box
+# It currently prints the input under the button, this is where we will eventually call GPT-3
+def submitInput():
+    inp = inputBox.get(1.0, "end-1c")
+    lbl.config(text="Text submitted: " + inp)
 
-root = Tk()
-root.title('AI Summarizer')
-root.geometry(windowWidth+"x"+windowHeight)
+# Creates the textbox
+inputBox = tk.Text(frame, height=20, width=80)
+inputBox.pack()
 
-button_1 = Button(root, text="Submit", font=("Helvetica", 32))
-button_2 = Button(root, text="Clear", font=("Helvetica", 32))
+# Creates submit button
+submitButton = tk.Button(frame, text="Submit", command=submitInput)
+submitButton.pack()
 
-button_1.grid(column=0, row=0)
-button_2.grid(column=1, row=0)
+# Creates the label (blank for now, it changes after it is submitted)
+lbl = tk.Label(frame, text="")
+lbl.pack()
 
-T = Text(root)
-T.place(relx=0.5, rely=0.5, anchor=CENTER)
-
-def submitText():
-
-    text = T.get()
-
-
-
-
-
-root.mainloop()
-
-
-button1 = tk.Button(text='Get the Square Root', command=getSquareRoot)
-canvas1.create_window(200, 180, window=button1)
-
-root.mainloop()
+# Starts the window
+frame.mainloop()
