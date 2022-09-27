@@ -1,5 +1,6 @@
 import tkinter as tk
 import openai
+from threading import *
 
 # PUT YOUR OPEN AI KEY HERE, DELETE BEFORE COMMITTING TO GITHUB
 # This will also charge your account, be careful and use test strings if possible
@@ -10,7 +11,19 @@ frame = tk.Tk()
 frame.title("Summarizer")
 frame.geometry('1280x720')
 
-# This function is called to process the input of the text box
+
+# Creates a thread in order to prevent window from freezing while waiting for text to generate
+def apiResponseThread():
+    # Prevents button from being pressed while loading
+    # Also gives a visual indicator for the program loading
+    submitButton.config(bg="#DBDBDB", state="disabled", text="Loading")
+
+    # Calls the submitInput() function in a thread
+    t1 = Thread(target=submitInput)
+    t1.start()
+
+
+# This function is called to process the input of the text box in the previously mentioned thread
 def submitInput():
     # Gets the text from the input box
     inp = inputBox.get(1.0, "end-1c")
@@ -43,15 +56,19 @@ def submitInput():
         recData = ''.join(recData)
         index = index + 2
 
+    # Changes the submit button back to it's original state
+    submitButton.config(bg="white", state="active", text="Submit")
+
     # Shows the text
     lbl.config(text=recData, anchor="w")
+
 
 # Creates the textbox
 inputBox = tk.Text(frame, height=20, width=80)
 inputBox.pack()
 
 # Creates submit button
-submitButton = tk.Button(frame, text="Submit", command=submitInput)
+submitButton = tk.Button(frame, text="Submit", command=apiResponseThread)
 submitButton.pack()
 
 # Creates the label (blank for now, it changes after it is submitted)
