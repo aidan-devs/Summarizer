@@ -11,7 +11,11 @@ openai.api_key = ""
 # Creates the window
 frame = tk.Tk()
 frame.title("Summarizer")
-frame.geometry('1280x720')
+frame.geometry('800x1200')
+
+# Initializes a variable for summarizer type
+sumType = tk.IntVar()
+sumType.set(1)
 
 # Creates a thread in order to prevent window from freezing while waiting for text to generate
 def apiResponseThread():
@@ -21,6 +25,7 @@ def apiResponseThread():
 
     if openai.api_key == "":
         lbl.config(text="No API key provided. Please exit and provide an API key.", anchor="w")
+        return
 
     # Calls the submitInput() function in a thread
     t1 = Thread(target=submitInput)
@@ -32,8 +37,16 @@ def submitInput():
     # Gets the text from the input box
     inp = inputBox.get(1.0, "end-1c")
 
+    if len(inp) > 50:
+        lbl.config(text="Please enter more text", anchor="w")
+        return
+
     # Creates the prompt for GPT-3
-    prompt = "Summarize the following with bullet points:\n\n" + inp
+    prompt = ""
+    if sumType.get() == 1:
+        prompt = "Summarize the following with bullet points:\n\n" + inp
+    if sumType.get() == 2:
+        prompt = "Summarize the following in a paragraph:\n\n" + inp
 
     # The API request to generate the response
     try:
@@ -65,15 +78,34 @@ def submitInput():
         recData = ''.join(recData)
         index = index + 2
 
-    # Changes the submit button back to it's original state
+    # Changes the submit button back to its original state
     submitButton.config(bg="white", state="active", text="Submit")
 
     # Shows the text
-    lbl.config(text=recData, anchor="w")
+    lbl.config(text=recData, anchor="w", justify=tk.LEFT)
+
+
+# Creates title
+title = tk.Label(frame, text="Summarizer")
+title.config(font=('Helvatical bold',30))
+title.pack()
+
+# Creates subtitle
+subtitle = tk.Label(frame, text="Input text below:")
+subtitle.config(font=('Helvatical bold',15))
+subtitle.pack()
 
 # Creates the textbox
 inputBox = tk.Text(frame, height=20, width=80)
 inputBox.pack()
+
+# Creates a label for summarizer type
+typeLabel = tk.Label(frame, text="Choose summarizer type:")
+typeLabel.pack()
+
+# Creates radio buttons for summarizer selection
+tk.Radiobutton(frame, text="Bullet Points",padx = 20, variable=sumType, value=1).pack()
+tk.Radiobutton(frame, text="Paragraph    ",padx = 20, variable=sumType, value=2).pack()
 
 # Creates submit button
 submitButton = tk.Button(frame, text="Submit", command=apiResponseThread)
