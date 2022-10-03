@@ -1,5 +1,7 @@
+import sys
 import tkinter as tk
 import openai
+import time
 from threading import *
 
 # PUT YOUR OPEN AI KEY HERE, DELETE BEFORE COMMITTING TO GITHUB
@@ -11,12 +13,14 @@ frame = tk.Tk()
 frame.title("Summarizer")
 frame.geometry('1280x720')
 
-
 # Creates a thread in order to prevent window from freezing while waiting for text to generate
 def apiResponseThread():
     # Prevents button from being pressed while loading
     # Also gives a visual indicator for the program loading
     submitButton.config(bg="#DBDBDB", state="disabled", text="Loading")
+
+    if openai.api_key == "":
+        lbl.config(text="No API key provided. Please exit and provide an API key.", anchor="w")
 
     # Calls the submitInput() function in a thread
     t1 = Thread(target=submitInput)
@@ -32,15 +36,20 @@ def submitInput():
     prompt = "Summarize the following with bullet points:\n\n" + inp
 
     # The API request to generate the response
-    response = openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=256,
-        top_p=1.0,
-        frequency_penalty=0.0,
-        presence_penalty=0.0
-    )
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-002",
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=256,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0
+        )
+    except openai.error.AuthenticationError:
+        lbl.config(text="Issue authenticating with the OpenAI server\nMost commonly an invalid API key", anchor="w")
+        submitButton.config(bg="white", state="active", text="Submit")
+        return
 
     # Gets the text from the response
     recData = response['choices'][0]['text']
@@ -61,7 +70,6 @@ def submitInput():
 
     # Shows the text
     lbl.config(text=recData, anchor="w")
-
 
 # Creates the textbox
 inputBox = tk.Text(frame, height=20, width=80)
