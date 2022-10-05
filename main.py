@@ -8,9 +8,18 @@ from threading import *
 openai.api_key = ""
 
 # Creates the window
-frame = tk.Tk()
-frame.title("Summarizer")
-frame.geometry('680x850')
+window = tk.Tk()
+window.title("Summarizer")
+window.geometry('750x850')
+frame = Frame(window)
+
+# Centers all widgets
+frame.grid(row=0, column=0, sticky="N")
+frame.grid_rowconfigure(0, weight=1)
+frame.grid_columnconfigure(0, weight=1)
+window.grid_rowconfigure(0, weight=1)
+window.grid_columnconfigure(0, weight=1)
+frame.grid(row=0, column=0, sticky="N")
 
 # Initializes a variable for summarizer type
 sumType = tk.IntVar()
@@ -23,8 +32,8 @@ def apiResponseThread():
     submitButton.config(bg="#DBDBDB", state="disabled", text="Loading")
 
     if openai.api_key == "":
-        lbl.delete(1.0, END)
-        lbl.insert(INSERT, "No API key provided. Please exit and provide an API key.")
+        outputBox.delete(1.0, END)
+        outputBox.insert(INSERT, "No API key provided. Please exit and provide an API key.")
         return
 
     # Calls the submitInput() function in a thread
@@ -38,8 +47,9 @@ def submitInput():
     inp = inputBox.get(1.0, "end-1c")
 
     if len(inp) < 50:
-        lbl.delete(1.0, END)
-        lbl.insert(INSERT, "Please enter more text")
+        outputBox.delete(1.0, END)
+        outputBox.insert(INSERT, "Please enter more text")
+        submitButton.config(bg="white", state="active", text="Submit")
         return
 
     # Creates the prompt for GPT-3
@@ -61,13 +71,20 @@ def submitInput():
             presence_penalty=0.0
         )
     except openai.error.AuthenticationError:
-        lbl.delete(1.0, END)
-        lbl.insert(INSERT, "Issue authenticating with OpenAI. Do you have a valid API key?")
+        outputBox.delete(1.0, END)
+        outputBox.insert(INSERT, "Issue authenticating with OpenAI. Do you have a valid API key?")
         submitButton.config(bg="white", state="active", text="Submit")
         return
 
     # Gets the text from the response
     recData = response['choices'][0]['text']
+
+    # Deletes whitespace in the beginning of the text
+    while recData.find("\n", 0) == 0:
+        index = recData.find("\n", 0)
+        recData = list(recData)
+        recData.remove("\n")
+        recData = ''.join(recData)
 
     # Adds space between each line for readability
     index = 0
@@ -84,49 +101,48 @@ def submitInput():
     submitButton.config(bg="white", state="active", text="Submit")
 
     # Shows the text
-    lbl.delete(1.0, END)
-    lbl.insert(INSERT, recData)
+    outputBox.delete(1.0, END)
+    outputBox.insert(INSERT, recData)
 
 
 # Creates title
 title = tk.Label(frame, text="Summarizer")
 title.config(font=('Helvatical bold',30))
-title.grid(row=0, column=0)
+title.grid(row=1, column=0)
 
 # Creates subtitle
 subtitle = tk.Label(frame, text="Input text below:")
 subtitle.config(font=('Helvatical bold',15))
-subtitle.grid(row=1, column=0)
+subtitle.grid(row=2, column=0)
 
 # Creates the textbox
 inputBox = tk.Text(frame, height=20, width=80)
-inputBox.grid(row=2, column=0)
+inputBox.grid(row=3, column=0)
 
 # Creates a label for summarizer type
 typeLabel = tk.Label(frame, text="Choose summarizer type:")
-typeLabel.grid(row=3, column=0)
+typeLabel.grid(row=4, column=0)
 
 # Creates radio buttons for summarizer selection
-tk.Radiobutton(frame, text="Bullet Points",padx = 20, variable=sumType, value=1).grid(row=4, column=0)
-tk.Radiobutton(frame, text="Paragraph    ",padx = 20, variable=sumType, value=2).grid(row=5, column=0)
+tk.Radiobutton(frame, text="Bullet Points",padx = 20, variable=sumType, value=1).grid(row=5, column=0)
+tk.Radiobutton(frame, text="Paragraph    ",padx = 20, variable=sumType, value=2).grid(row=6, column=0)
 
 # Creates submit button
 submitButton = tk.Button(frame, text="Submit", command=apiResponseThread)
-submitButton.grid(row=6, column=0)
+submitButton.grid(row=7, column=0)
 
 # Creates the display box for the summarized content (blank for now, it changes after it is submitted)
-lbl = tk.Text(frame, height=20, width=80)
-lbl.insert(INSERT, "")
-lbl.grid(row=7, column=0)
+outputBox = tk.Text(frame, height=20, width=80)
+outputBox.insert(INSERT, "")
+outputBox.grid(row=8, column=0)
 
-# Adds a scrollbar to the input and output boxes
-scrollbar = tk.Scrollbar(frame, orient='vertical', command=lbl.yview)
-scrollbar.grid(row=7, column=1, sticky=tk.NS)
-lbl['yscrollcommand'] = scrollbar.set
-
-scrollbar = tk.Scrollbar(frame, orient='vertical', command=inputBox.yview)
-scrollbar.grid(row=2, column=1, sticky=tk.NS)
-inputBox['yscrollcommand'] = scrollbar.set
+# Adds a scrollbar to the input and output boxes, along with the window
+scrollbarOutput = tk.Scrollbar(frame, orient='vertical', command=outputBox.yview)
+scrollbarOutput.grid(row=8, column=1, sticky=tk.NS)
+outputBox['yscrollcommand'] = scrollbarOutput.set
+scrollbarInput = tk.Scrollbar(frame, orient='vertical', command=inputBox.yview)
+scrollbarInput.grid(row=3, column=1, sticky=tk.NS)
+inputBox['yscrollcommand'] = scrollbarInput.set
 
 # Starts the window
 frame.mainloop()
