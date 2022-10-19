@@ -7,6 +7,17 @@ from threading import *
 from bs4 import BeautifulSoup
 import requests
 
+"""
+READ:
+This program was written for a class that required the use of GPT-3. I would rather have trained my own neural network
+but OpenAI's GPT-3 works fairly well for this application anyway.
+
+I also wanted to make the program as easy to read as possible, meaning some obvious optimizations (ex. using loops for
+radio buttons) have been purposefully avoided
+
+The professor also prefers Java so I used camelCase to be funny.
+"""
+
 # PUT YOUR OPEN AI KEY HERE, DELETE BEFORE COMMITTING TO GITHUB
 # This will also charge your account, be careful and use test strings if possible
 openai.api_key = ""
@@ -126,6 +137,11 @@ def submitInput():
         outputBox.insert(INSERT, "Issue authenticating with OpenAI. Do you have a valid API key?")
         submitButton.config(state="active", text="Submit")
         return
+    except openai.error.InvalidRequestError:
+        outputBox.delete(1.0, END)
+        outputBox.insert(INSERT, "Too much input data provided. Use smaller text/website.")
+        submitButton.config(state="active", text="Submit")
+        return
 
     # Gets the text from the response
     recData = response['choices'][0]['text']
@@ -168,12 +184,11 @@ def outputSelected():
         questionFrame.grid_forget()
 
 
-# Creates title
+# GUI Setup
 title = ttk.Label(frame, text="Summarizer")
 title.config(font=('Small Fonts',30))
 title.grid(row=1, column=0)
 
-# Sets up the options
 frameOptions = Frame(frame)
 frameOptions.grid(row=2, column=0)
 
@@ -198,20 +213,16 @@ questionLabel.config(font=('Helvatical bold',10))
 questionBox = ttk.Entry(questionFrame)
 questionBox.config(width=50)
 
-# Creates the textbox
 inputBox = tkinter.Text(frame, height=18, width=80)
 inputBox.grid(row=5, column=0)
 
-# Creates submit button
 submitButton = ttk.Button(frame, text="Submit", command=apiResponseThread)
 submitButton.grid(row=9, column=0, pady=10)
 
-# Creates the display box for the summarized content (blank for now, it changes after it is submitted)
 outputBox = tkinter.Text(frame, height=18, width=80)
 outputBox.insert(INSERT, "")
 outputBox.grid(row=10, column=0)
 
-# Adds a scrollbar to the input and output boxes, along with the window
 scrollbarOutput = ttk.Scrollbar(frame, orient='vertical', command=outputBox.yview)
 scrollbarOutput.grid(row=10, column=1, sticky=tkinter.NS)
 outputBox['yscrollcommand'] = scrollbarOutput.set
